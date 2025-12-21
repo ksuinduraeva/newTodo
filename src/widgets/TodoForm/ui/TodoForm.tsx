@@ -21,15 +21,15 @@ const TodoForm: FC<Props> = ({
                                  onAdd,
                              }) => {
 
-    const handleTitleChange = (event: ChangeEvent<HTMLInputElement>): void => {
+    const handleTitleChange = (event: ChangeEvent<HTMLInputElement>) => {
         onTitleChange(event.target.value);
     };
 
-    const handleDueChange = (event: ChangeEvent<HTMLInputElement>): void => {
+    const handleDueChange = (event: ChangeEvent<HTMLInputElement>) => {
         onDueChange(event.target.value);
     };
 
-    const handleImportanceChange = (event: ChangeEvent<HTMLInputElement>): void => {
+    const handleImportanceChange = (event: ChangeEvent<HTMLInputElement>) => {
         onImportanceChange(event.target.value as Importance);
     };
 

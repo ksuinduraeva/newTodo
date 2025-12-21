@@ -1,6 +1,7 @@
 import type { FC } from "react";
 import TodoItem from "../../TodoItem";
 import type { Task } from "../../../entities/model/types";
+import { Link } from "react-router-dom";
 
 type Props = {
     task: Task;
@@ -9,7 +10,9 @@ type Props = {
 const TodoListItem: FC<Props> = ({ task }) => {
     return (
         <div>
-            <TodoItem task={task} />
+            <Link to={`/todo/${task.id}`} >
+                <TodoItem task={task} />
+            </Link>
         </div>
     );
 };

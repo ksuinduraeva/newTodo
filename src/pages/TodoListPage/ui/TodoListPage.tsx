@@ -4,13 +4,19 @@ import TodoForm from "../../../widgets/TodoForm";
 import TodoListItem from "../../../widgets/TodoListItem";
 import type { Task, Importance } from "../../../entities/model/types";
 import { v4 as uuidv4 } from "uuid";
+import { useAppDispatch, useAppSelector } from "../../../shared/providers/store/hooks";
+import { addTask } from "../../../entities/model/slice";
+
+
 
 const TodoListPage: FC = () => {
     const [isFormExpanded, setIsFormExpanded] = useState<boolean>(false);
     const [titleValue, setTitleValue] = useState<string>("");
     const [dueValue, setDueValue] = useState<string>("");
     const [importanceValue, setImportanceValue] = useState<Importance>("urgent_not_important");
-    const [tasks, setTasks] = useState<Task[]>([]);
+
+    const tasks = useAppSelector((state) => state.tasks.items);
+    const dispatch = useAppDispatch();
 
     const handleAdd = () => {
         const trimmedTitle = titleValue.trim();
@@ -23,7 +29,7 @@ const TodoListPage: FC = () => {
             importance: importanceValue,
         };
 
-        setTasks((previous) => [newTask, ...previous]);
+        dispatch(addTask(newTask));
 
         setTitleValue("");
         setDueValue("");
@@ -34,11 +40,11 @@ const TodoListPage: FC = () => {
         setIsFormExpanded(true);
     };
 
-    const handleTitleChange = (event: ChangeEvent<HTMLInputElement>): void => {
+    const handleTitleChange = (event: ChangeEvent<HTMLInputElement>) => {
         setTitleValue(event.target.value);
     };
 
-    const handleTitleKeyDown = (event: KeyboardEvent<HTMLInputElement>): void => {
+    const handleTitleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
         if (event.key === "Enter") handleAdd();
     };
 
@@ -76,7 +82,7 @@ const TodoListPage: FC = () => {
 
             <div>
                 {tasks.length === 0 ? (
-                    <div>Список пуст — добавьте задачу</div>
+                    <div>Список пуст</div>
                 ) : (
                     <ul>
                         {tasks.map((task) => (
