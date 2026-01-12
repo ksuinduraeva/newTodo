@@ -3,11 +3,18 @@ import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
 import { Provider } from "react-redux";
 import { store } from "./shared/providers/store/index.ts";
+import { ThemeProvider } from "@mui/material/styles";
+import CssBaseline from "@mui/material/CssBaseline";
+import theme from "./shared/theme/theme";
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-      <Provider store={store}>
-    <App />
-          </Provider>,
-  </StrictMode>,
-)
+const root = createRoot(document.getElementById('root')!)
+root.render(
+    <StrictMode>
+        <Provider store={store}>
+            <ThemeProvider theme={theme}>
+                <CssBaseline />
+                    <App />
+            </ThemeProvider>
+        </Provider>
+    </StrictMode>,
+);

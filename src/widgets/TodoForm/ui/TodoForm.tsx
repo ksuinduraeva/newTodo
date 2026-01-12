@@ -1,5 +1,14 @@
 import type { FC, ChangeEvent } from "react";
 import type { Importance } from "../../../entities/model/types";
+import { Stack,
+    TextField,
+    Button,
+    FormControl,
+    FormLabel,
+    RadioGroup,
+    FormControlLabel,
+    Radio } from "@mui/material";
+
 
 type Props = {
     title: string;
@@ -38,81 +47,68 @@ const TodoForm: FC<Props> = ({
     };
 
     return (
-        <div>
-            <div>
-                <label>
-                    Задача:
-                    <input
-                        type="text"
-                        value={title}
-                        onChange={handleTitleChange}
-                        placeholder="название задачи"
-                    />
-                </label>
-            </div>
+        <Stack spacing={2}>
+            <TextField
+                label="Задача"
+                placeholder="название задачи"
+                value={title}
+                onChange={handleTitleChange}
+                size="small"
+                fullWidth
+            />
 
-            <div>
-                <label>
-                    Сделать до:
-                    <input type="date" value={due} onChange={handleDueChange}/>
-                </label>
-            </div>
+            <TextField
+                label="Сделать до"
+                type="date"
+                value={due}
+                onChange={handleDueChange}
+                slotProps={{
+                    inputLabel: {shrink: true},
+                    htmlInput: {'aria-label': 'Сделать до'}
+                }}
+                size="small"
+            />
 
-            <div>
-                <div>Важность:</div>
+            <FormControl component="fieldset">
+                <FormLabel component="legend">Важность</FormLabel>
 
-                <label>
-                    <input
-                        type="radio"
-                        name="importance"
-                        checked={importance === "urgent_not_important"}
+                <RadioGroup
+                    row
+                    name="importance"
+                    value={importance}
+                    onChange={handleImportanceChange}
+                >
+                    <FormControlLabel
                         value="urgent_not_important"
-                        onChange={handleImportanceChange}
+                        control={<Radio size="small" />}
+                        label="Срочно, но неважно"
                     />
-                    Срочно, но неважно
-                </label>
-
-                <label>
-                    <input
-                        type="radio"
-                        name="importance"
-                        checked={importance === "urgent_important"}
-                        value="urgent_not_important"
-                        onChange={handleImportanceChange}
-
+                    <FormControlLabel
+                        value="urgent_important"
+                        control={<Radio size="small" />}
+                        label="Срочно и важно"
                     />
-                    Срочно и важно
-                </label>
-
-                <label>
-                    <input
-                        type="radio"
-                        name="importance"
-                        checked={importance === "not_urgent_important"}
-                        value="urgent_not_important"
-                        onChange={handleImportanceChange}
-
+                    <FormControlLabel
+                        value="not_urgent_important"
+                        control={<Radio size="small" />}
+                        label="Не срочно, но важно"
                     />
-                    Не срочно, но важно
-                </label>
-
-                <label>
-                    <input
-                        type="radio"
-                        name="importance"
-                        checked={importance === "not_urgent_not_important"}
-                        value="urgent_not_important"
-                        onChange={handleImportanceChange}
-
+                    <FormControlLabel
+                        value="not_urgent_not_important"
+                        control={<Radio size="small" />}
+                        label="Не срочно и не важно"
                     />
-                    Не срочно и не важно
-                </label>
-            </div>
+                </RadioGroup>
+            </FormControl>
 
-            <div>
-                <button onClick={handleAddClick}>Добавить задачу</button>
-            </div>
-        </div>
+            <Button
+                variant="contained"
+                onClick={handleAddClick}
+                sx={{ alignSelf: "flex-start" }}
+            >
+                Добавить задачу
+            </Button>
+        </Stack>
     );
 };
 

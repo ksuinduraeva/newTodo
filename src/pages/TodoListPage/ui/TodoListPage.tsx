@@ -1,13 +1,21 @@
 import type { FC, ChangeEvent, KeyboardEvent } from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import TodoForm from "../../../widgets/TodoForm";
 import TodoListItem from "../../../widgets/TodoListItem";
 import type { Task, Importance } from "../../../entities/model/types";
 import { v4 as uuidv4 } from "uuid";
 import { useAppDispatch, useAppSelector } from "../../../shared/providers/store/hooks";
-import { addTask } from "../../../entities/model/slice";
-
-
+import { addTask, replaceAllTasks } from "../../../entities/model/slice";
+import { useGetPostsQuery } from "../../../shared/services/postsApi";
+import {
+    Box,
+    Button,
+    Container,
+    Stack,
+    TextField,
+    Typography,
+} from '@mui/material';
+import { selectAllTasks } from "../../../entities/model/selectors";
 
 const TodoListPage: FC = () => {
     const [isFormExpanded, setIsFormExpanded] = useState<boolean>(false);
@@ -15,7 +23,7 @@ const TodoListPage: FC = () => {
     const [dueValue, setDueValue] = useState<string>("");
     const [importanceValue, setImportanceValue] = useState<Importance>("urgent_not_important");
 
-    const tasks = useAppSelector((state) => state.tasks.items);
+    const tasks = useAppSelector(selectAllTasks);
     const dispatch = useAppDispatch();
 
     const handleAdd = () => {
@@ -53,22 +61,53 @@ const TodoListPage: FC = () => {
         else setIsFormExpanded(true);
     };
 
-    return (
-        <div>
-            <h1>Список задач</h1>
+    const { data: postsData } = useGetPostsQuery();
 
-            <div>
-                <input
+    useEffect(() => {
+        if (postsData && postsData.length) {
+            const mapped = postsData.slice(0, 10).map((post) => ({
+                id: String(post.id),
+                title: post.title,
+                importance: "not_urgent_not_important" as Importance,
+                due: undefined,
+            }));
+            dispatch(replaceAllTasks(mapped));
+        }
+    }, [postsData, dispatch]);
+
+    return (
+        <Container maxWidth="md" sx={{ py: 4 }}>
+            <Typography variant="h4" component="h1" sx={{ mb: 2 }}>
+                Список задач
+            </Typography>
+
+            <Box component="section" sx={{ mb: 2 }}>
+                <Stack direction="row" spacing={1} alignItems="center">
+                <TextField
                     placeholder="Добавить задачу..."
                     value={titleValue}
                     onFocus={handleTitleFocus}
                     onChange={handleTitleChange}
                     onKeyDown={handleTitleKeyDown}
+                    size="small"
+                    fullWidth
+                    sx={{ flex: 1 }}
+                    slotProps ={{ input: {"aria-label": "Добавить задачу"} }}
                 />
-                <button onClick={handleAddButtonClick}>+</button>
-            </div>
+                <Button
+                    onClick={handleAddButtonClick}
+                    variant="contained"
+                    color="primary"
+                    sx={{ minWidth: 44, p: 1 }}
+                    aria-label="Добавить"
+                    >
+                    +
+                </Button>
+                </Stack>
+            </Box>
 
             {isFormExpanded && (
+                <Box component="section" sx={{ mb: 3 }}>
                 <TodoForm
                     title={titleValue}
                     onTitleChange={setTitleValue}
@@ -78,22 +117,19 @@ const TodoListPage: FC = () => {
                     onImportanceChange={setImportanceValue}
                     onAdd={handleAdd}
                 />
+                </Box>
             )}
 
-            <div>
+            <Box component="section">
                 {tasks.length === 0 ? (
-                    <div>Список пуст</div>
+                    <Typography color="text.secondary">Список пуст</Typography>
                 ) : (
-                    <ul>
-                        {tasks.map((task) => (
-                            <li key={task.id}>
-                                <TodoListItem task={task} />
-                            </li>
-                        ))}
-                    </ul>
+                    <Box component="ul" sx={{ p: 0, m: 0, listStyle: "none" }}>
+                        {tasks.map(task => <TodoListItem key={task.id} task={task} />)}
+                    </Box>
                 )}
-            </div>
-        </div>
+            </Box>
+        </Container>
     );
 };
 
