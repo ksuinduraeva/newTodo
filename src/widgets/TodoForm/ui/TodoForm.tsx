@@ -1,5 +1,8 @@
-import type { FC, ChangeEvent } from "react";
-import type { Importance } from "../../../entities/model/types";
+import type { FC } from "react";
+import type { SubmitHandler } from "react-hook-form";
+import type { Resolver } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Stack,
     TextField,
     Button,
@@ -8,107 +11,88 @@ import { Stack,
     RadioGroup,
     FormControlLabel,
     Radio } from "@mui/material";
-
+import type { Task } from "../../../entities/model/types";
+import type { TaskFormValues } from "../../../shared/forms/schemas/taskSchema";
+import { taskSchema, mapFormToTask } from "../../../shared/forms/schemas/taskSchema";
+import { IMPORTANCE_VALUES, IMPORTANCE_LABELS } from "../../../entities/model/constants";
 
 type Props = {
-    title: string;
-    onTitleChange: (value: string) => void;
-    due: string;
-    onDueChange: (value: string) => void;
-    importance: Importance;
-    onImportanceChange: (value: Importance) => void;
-    onAdd: () => void;
+    initialTask?: Task | null;
+    onSaved?: (savedTask: Task) => void;
+    submitLabel?: string;
 };
 
-const TodoForm: FC<Props> = ({
-                                 title,
-                                 onTitleChange,
-                                 due,
-                                 onDueChange,
-                                 importance,
-                                 onImportanceChange,
-                                 onAdd,
-                             }) => {
+const TodoForm: FC<Props> = ({ initialTask = null, onSaved, submitLabel }) => {
+    const { register, control, handleSubmit, formState: { errors, isSubmitting }, reset } =
+        useForm<TaskFormValues>({
+            resolver: zodResolver(taskSchema) as unknown as Resolver<TaskFormValues>,
+            defaultValues: {
+                title: initialTask?.title ?? "",
+                due: initialTask?.due ? initialTask.due.split("T")[0] : "",
+                importance: initialTask?.importance ?? IMPORTANCE_VALUES[2],
+            },
+        });
 
-    const handleTitleChange = (event: ChangeEvent<HTMLInputElement>) => {
-        onTitleChange(event.target.value);
-    };
-
-    const handleDueChange = (event: ChangeEvent<HTMLInputElement>) => {
-        onDueChange(event.target.value);
-    };
-
-    const handleImportanceChange = (event: ChangeEvent<HTMLInputElement>) => {
-        onImportanceChange(event.target.value as Importance);
-    };
-
-    const handleAddClick = () => {
-        onAdd();
+    const onSubmit: SubmitHandler<TaskFormValues> = (formValues: TaskFormValues) => {
+        const taskPayload = mapFormToTask(formValues, initialTask?.id);
+        reset();
+        onSaved?.(taskPayload);
     };
 
     return (
-        <Stack spacing={2}>
-            <TextField
-                label="Задача"
-                placeholder="название задачи"
-                value={title}
-                onChange={handleTitleChange}
-                size="small"
-                fullWidth
-            />
+        <form onSubmit={handleSubmit(onSubmit as any)}>
+            <Stack spacing={2}>
+                <TextField
+                    {...register("title")}
+                    label="Задача"
+                    placeholder="название задачи"
+                    size="small"
+                    fullWidth
+                    error={!!errors.title}
+                    helperText={errors.title?.message}
+                />
 
-            <TextField
-                label="Сделать до"
-                type="date"
-                value={due}
-                onChange={handleDueChange}
-                slotProps={{
-                    inputLabel: {shrink: true},
-                    htmlInput: {'aria-label': 'Сделать до'}
-                }}
-                size="small"
-            />
+                <TextField
+                    {...register("due")}
+                    label="Сделать до"
+                    type="date"
+                    slotProps={{
+                        inputLabel: { shrink: true }}}
+                    size="small"
+                    error={!!errors.due}
+                    helperText={errors.due?.message}
+                />
 
-            <FormControl component="fieldset">
-                <FormLabel component="legend">Важность</FormLabel>
+                <FormControl component="fieldset" error={!!errors.importance}>
+                    <FormLabel component="legend">Важность</FormLabel>
 
-                <RadioGroup
-                    row
-                    name="importance"
-                    value={importance}
-                    onChange={handleImportanceChange}
-                >
-                    <FormControlLabel
-                        value="urgent_not_important"
-                        control={<Radio size="small" />}
-                        label="Срочно, но неважно"
+                    <Controller
+                        name="importance"
+                        control={control}
+                        render={({ field }) => (
+                            <RadioGroup row {...field}>
+                                {IMPORTANCE_VALUES.map((option) => (
+                                    <FormControlLabel
+                                        key={option}
+                                        value={option}
+                                        control={<Radio size="small" />}
+                                        label={IMPORTANCE_LABELS[option]}
+                                    />
+                                ))}
+                            </RadioGroup>
+                        )}
                     />
-                    <FormControlLabel
-                        value="urgent_important"
-                        control={<Radio size="small" />}
-                        label="Срочно и важно"
-                    />
-                    <FormControlLabel
-                        value="not_urgent_important"
-                        control={<Radio size="small" />}
-                        label="Не срочно, но важно"
-                    />
-                    <FormControlLabel
-                        value="not_urgent_not_important"
-                        control={<Radio size="small" />}
-                        label="Не срочно и не важно"
-                    />
-                </RadioGroup>
-            </FormControl>
 
-            <Button
-                variant="contained"
-                onClick={handleAddClick}
-                sx={{ alignSelf: "flex-start" }}
-            >
-                Добавить задачу
-            </Button>
-        </Stack>
+                    {errors.importance?.message && (
+                        <div style={{ color: "#d32f2f", fontSize: 12 }}>{errors.importance.message}</div>
+                    )}
+                </FormControl>
+
+                <Button type="submit" variant="contained" disabled={isSubmitting} sx={{ alignSelf: "flex-start" }}>
+                    {submitLabel ?? (initialTask ? "Сохранить" : "Добавить задачу")}
+                </Button>
+            </Stack>
+        </form>
     );
 };
 

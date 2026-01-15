@@ -44,6 +44,16 @@ const TodoListPage: FC = () => {
         setImportanceValue("urgent_not_important");
         setIsFormExpanded(false);
     };
+
+    const handleSaved = (task: Task) => {
+        dispatch(addTask(task));
+
+        setTitleValue("");
+        setDueValue("");
+        setImportanceValue("urgent_not_important");
+        setIsFormExpanded(false);
+    };
+
     const handleTitleFocus = () => {
         setIsFormExpanded(true);
     };
@@ -109,13 +119,8 @@ const TodoListPage: FC = () => {
             {isFormExpanded && (
                 <Box component="section" sx={{ mb: 3 }}>
                 <TodoForm
-                    title={titleValue}
-                    onTitleChange={setTitleValue}
-                    due={dueValue}
-                    onDueChange={setDueValue}
-                    importance={importanceValue}
-                    onImportanceChange={setImportanceValue}
-                    onAdd={handleAdd}
+                    onSaved={handleSaved}
+                    submitLabel="Добавить задачу"
                 />
                 </Box>
             )}
