@@ -1,1 +1,1 @@
-export { default } from "./ui/TodoDetails
+export { default } from "./ui/TodoDetails"
