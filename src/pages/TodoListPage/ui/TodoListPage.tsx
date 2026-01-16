@@ -1,74 +1,25 @@
-import type { FC, ChangeEvent, KeyboardEvent } from "react";
-import { useState, useEffect } from "react";
+import type { FC } from "react";
+import { useEffect } from "react";
 import TodoForm from "../../../widgets/TodoForm";
 import TodoListItem from "../../../widgets/TodoListItem";
 import type { Task, Importance } from "../../../entities/model/types";
-import { v4 as uuidv4 } from "uuid";
 import { useAppDispatch, useAppSelector } from "../../../shared/providers/store/hooks";
 import { addTask, replaceAllTasks } from "../../../entities/model/slice";
 import { useGetPostsQuery } from "../../../shared/services/postsApi";
 import {
     Box,
-    Button,
     Container,
-    Stack,
-    TextField,
     Typography,
 } from '@mui/material';
 import { selectAllTasks } from "../../../entities/model/selectors";
 
 const TodoListPage: FC = () => {
-    const [isFormExpanded, setIsFormExpanded] = useState<boolean>(false);
-    const [titleValue, setTitleValue] = useState<string>("");
-    const [dueValue, setDueValue] = useState<string>("");
-    const [importanceValue, setImportanceValue] = useState<Importance>("urgent_not_important");
 
     const tasks = useAppSelector(selectAllTasks);
     const dispatch = useAppDispatch();
 
-    const handleAdd = () => {
-        const trimmedTitle = titleValue.trim();
-        if (!trimmedTitle) return;
-
-        const newTask: Task = {
-            id: uuidv4(),
-            title: trimmedTitle,
-            due: dueValue || undefined,
-            importance: importanceValue,
-        };
-
-        dispatch(addTask(newTask));
-
-        setTitleValue("");
-        setDueValue("");
-        setImportanceValue("urgent_not_important");
-        setIsFormExpanded(false);
-    };
-
     const handleSaved = (task: Task) => {
         dispatch(addTask(task));
-
-        setTitleValue("");
-        setDueValue("");
-        setImportanceValue("urgent_not_important");
-        setIsFormExpanded(false);
-    };
-
-    const handleTitleFocus = () => {
-        setIsFormExpanded(true);
-    };
-
-    const handleTitleChange = (event: ChangeEvent<HTMLInputElement>) => {
-        setTitleValue(event.target.value);
-    };
-
-    const handleTitleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
-        if (event.key === "Enter") handleAdd();
-    };
-
-    const handleAddButtonClick = () => {
-        if (isFormExpanded) handleAdd();
-        else setIsFormExpanded(true);
     };
 
     const { data: postsData } = useGetPostsQuery();
@@ -92,38 +43,8 @@ const TodoListPage: FC = () => {
             </Typography>
 
             <Box component="section" sx={{ mb: 2 }}>
-                <Stack direction="row" spacing={1} alignItems="center">
-                <TextField
-                    placeholder="Добавить задачу..."
-                    value={titleValue}
-                    onFocus={handleTitleFocus}
-                    onChange={handleTitleChange}
-                    onKeyDown={handleTitleKeyDown}
-                    size="small"
-                    fullWidth
-                    sx={{ flex: 1 }}
-                    slotProps ={{ input: {"aria-label": "Добавить задачу"} }}
-                />
-                <Button
-                    onClick={handleAddButtonClick}
-                    variant="contained"
-                    color="primary"
-                    sx={{ minWidth: 44, p: 1 }}
-                    aria-label="Добавить"
-                    >
-                    +
-                </Button>
-                </Stack>
+                <TodoForm onSaved={handleSaved} submitLabel="Добавить задачу" />
             </Box>
-
-            {isFormExpanded && (
-                <Box component="section" sx={{ mb: 3 }}>
-                <TodoForm
-                    onSaved={handleSaved}
-                    submitLabel="Добавить задачу"
-                />
-                </Box>
-            )}
 
             <Box component="section">
                 {tasks.length === 0 ? (

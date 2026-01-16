@@ -18,6 +18,11 @@ import CloseIcon from "@mui/icons-material/Close";
 import { useAppDispatch } from "../../../shared/providers/store/hooks";
 import { deleteTask, editTask } from "../../../entities/model/thunks";
 import { Link } from "react-router-dom";
+import { useForm, Controller } from "react-hook-form";
+import type { SubmitHandler, Resolver } from "react-hook-form";
+import { zodResolver} from "@hookform/resolvers/zod";
+import { mapFormToTask, taskSchema } from "../../../shared/forms/schemas/taskSchema.ts";
+import type { TaskFormValues } from "../../../shared/forms/schemas/taskSchema.ts";
 
 
 type Props = {
@@ -49,35 +54,46 @@ const TodoItem: FC<Props> = ({ task }) => {
     const dispatch = useAppDispatch();
 
     const [isEditing, setIsEditing] = useState(false);
-    const [draftTitle, setDraftTitle] = useState(task.title);
     const [isSaving, setIsSaving] = useState(false);
-    const [draftImportance, setDraftImportance] = useState<Importance>(task.importance);
+
+    const { control, handleSubmit, reset } = useForm<TaskFormValues>({
+        resolver: zodResolver(taskSchema) as unknown as Resolver<TaskFormValues>,
+        defaultValues: {
+            title: task.title,
+            due: task.due ? task.due.split("T")[0] : "",
+            importance: task.importance,
+        }
+    });
 
     const handleEditStart = () => {
-        setDraftTitle(task.title);
+        reset({title: task.title,
+            due: task.due ? task.due.split("T")[0] : "",
+            importance: task.importance})
         setIsEditing(true);
     };
 
     const handleCancel = () => {
+        reset({title: task.title,
+            due: task.due ? task.due.split("T")[0] : "",
+            importance: task.importance})
         setIsEditing(false);
-        setDraftTitle(task.title);
     };
 
-    const handleSave = async (): Promise<void> => {
-        const trimmed = draftTitle.trim();
+    const onSubmit: SubmitHandler<TaskFormValues> = async (formValues) => {
+        const trimmed = formValues.title.trim();
         if (trimmed === "") {
-            setDraftTitle(task.title);
+            reset({title: task.title,
+                due: task.due ? task.due.split("T")[0] : "",
+                importance: task.importance,
+            });
             setIsEditing(false);
             return;
         }
-        if (trimmed === task.title) {
-            setIsEditing(false);
-            return;
-        }
+
+    const updated: Task = mapFormToTask(formValues, task.id);
 
         setIsSaving(true);
         try {
-            const updated: Task = { ...task, title: trimmed, importance: draftImportance, };
             await dispatch(editTask(updated)).unwrap();
             setIsEditing(false);
         } catch (err) {
@@ -90,6 +106,7 @@ const TodoItem: FC<Props> = ({ task }) => {
     const handleDelete = () => {
         dispatch(deleteTask(task.id));
     };
+
     return (
         <Box
             sx={{
@@ -104,31 +121,39 @@ const TodoItem: FC<Props> = ({ task }) => {
             <Stack direction="row" alignItems="center" spacing={1} sx={{ justifyContent: "space-between" }}>
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1, flex: 1, minWidth: 0 }}>
                     {isEditing ? (
-                        <Box sx={{ display: "flex", gap: 1, alignItems: "center", flex: 1, minWidth: 0 }}>
+                        <Box
+                            component="form"
+                            onSubmit={handleSubmit(onSubmit)}
+                            sx={{ display: "flex", gap: 1, alignItems: "center", flex: 1, minWidth: 0 }}>
+                            <Controller
+                                name="title"
+                                control={control}
+                                render={({ field }) =>(
                             <TextField
+                            {...field}
                                 size="small"
-                                value={draftTitle}
-                                onChange={(event) => setDraftTitle(event.target.value)}
-                                onKeyDown={(event) => {
-                                    if (event.key === "Enter") {
-                                        event.preventDefault();
-                                        void handleSave();
-                                    } else if (event.key === "Escape") {
+                            sx={{ flex: 1, minWidth: 0 }}
+                            autoFocus
+                               onKeyDown={(event) => {
+                                    if (event.key === "Escape") {
                                         event.preventDefault();
                                         handleCancel();
                                     }
                                 }}
-                                sx={{ flex: 1, minWidth: 0 }}
-                                autoFocus
+                            />
+                            )}
                             />
 
                             <FormControl size="small" sx={{ minWidth: 160 }}>
                                 <InputLabel id={`importance-label-${task.id}`}>Важность</InputLabel>
+                                <Controller
+                                    name="importance"
+                                    control={control}
+                                    render={({ field }) => (
                                 <Select
+                                    {...field}
                                     labelId={`importance-label-${task.id}`}
-                                    value={draftImportance}
                                     label="Важность"
-                                    onChange={(event) => setDraftImportance(event.target.value as Importance)}
                                 >
                                     {IMPORTANCE_OPTIONS.map((opt) => (
                                         <MenuItem key={opt} value={opt}>
@@ -136,6 +161,8 @@ const TodoItem: FC<Props> = ({ task }) => {
                                         </MenuItem>
                                     ))}
                                 </Select>
+                                    )}
+                                />
                             </FormControl>
                         </Box>
                     ) : (
@@ -160,7 +187,7 @@ const TodoItem: FC<Props> = ({ task }) => {
                 <Box sx={{ display: "flex", gap: 0.5, ml: 1 }}>
                     {isEditing ? (
                         <>
-                            <IconButton aria-label="Сохранить" size="small" onClick={() => void handleSave()} disabled={isSaving}>
+                            <IconButton aria-label="Сохранить" size="small" onClick={handleSubmit(onSubmit)} disabled={isSaving}>
                                 <SaveIcon fontSize="small" />
                             </IconButton>
                             <IconButton aria-label="Отменить" size="small" onClick={handleCancel} disabled={isSaving}>
