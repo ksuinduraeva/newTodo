@@ -72,6 +72,7 @@ const TodoListPage: FC = () => {
     };
 
     const { data: postsData } = useGetPostsQuery();
+    console.log ();
 
     useEffect(() => {
         if (postsData && postsData.length) {
