@@ -10,6 +10,8 @@ import {
     Box,
     Container,
     Typography,
+    CircularProgress,
+    Alert,
 } from '@mui/material';
 import { selectAllTasks } from "../../../entities/model/selectors";
 
@@ -22,7 +24,7 @@ const TodoListPage: FC = () => {
         dispatch(addTask(task));
     };
 
-    const { data: postsData } = useGetPostsQuery();
+    const { data: postsData, isLoading, isError, error } = useGetPostsQuery();
 
     useEffect(() => {
         if (postsData && postsData.length) {
@@ -35,6 +37,18 @@ const TodoListPage: FC = () => {
             dispatch(replaceAllTasks(mapped));
         }
     }, [postsData, dispatch]);
+
+    if (isLoading) {
+        return (
+                <CircularProgress />
+        );
+    }
+
+    if (isError) {
+        return (
+                <Alert severity="error">Ошибка загрузки{error ? `: ${String(error)}` : ""}</Alert>
+        );
+    }
 
     return (
         <Container maxWidth="md" sx={{ py: 4 }}>

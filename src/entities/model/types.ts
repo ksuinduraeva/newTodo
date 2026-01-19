@@ -5,5 +5,6 @@ export interface Task {
     id: string;
     title: string;
     due?: string;
+    done?: boolean;
     importance: Importance;
 }

@@ -28,6 +28,13 @@ export const postsApi = createApi({
             query: (id) => `posts/${id}`,
             providesTags: (_result, _error, id) => [{ type: "Posts" as const, id }],
         }),
+        deletePost: build.mutation<void, number>({
+            query: (id) => ({ url: `posts/${id}`, method: "DELETE" }),
+            invalidatesTags: (_result, _error, id) => [
+                { type: "Posts" as const, id },
+                { type: "Posts" as const, id: "LIST" },
+            ],
+        }),
     }),
 });
 

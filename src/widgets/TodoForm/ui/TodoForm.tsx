@@ -10,7 +10,9 @@ import { Stack,
     FormLabel,
     RadioGroup,
     FormControlLabel,
-    Radio } from "@mui/material";
+    Radio,
+    FormHelperText,
+} from "@mui/material";
 import type { Task } from "../../../entities/model/types";
 import type { TaskFormValues } from "../../../shared/forms/schemas/taskSchema";
 import { taskSchema, mapFormToTask } from "../../../shared/forms/schemas/taskSchema";
@@ -40,7 +42,7 @@ const TodoForm: FC<Props> = ({ initialTask = null, onSaved, submitLabel }) => {
     };
 
     return (
-        <form onSubmit={handleSubmit(onSubmit as any)}>
+        <form onSubmit={handleSubmit(onSubmit)}>
             <Stack spacing={2}>
                 <TextField
                     {...register("title")}
@@ -84,7 +86,7 @@ const TodoForm: FC<Props> = ({ initialTask = null, onSaved, submitLabel }) => {
                     />
 
                     {errors.importance?.message && (
-                        <div style={{ color: "#d32f2f", fontSize: 12 }}>{errors.importance.message}</div>
+                        <FormHelperText error>{errors.importance?.message}</FormHelperText>
                     )}
                 </FormControl>
 

@@ -10,6 +10,7 @@ import { Container,
     Button,
     Box,
     Chip } from "@mui/material";
+import { IMPORTANCE_COLORS } from "../../../entities/model/constants";
 
 const importanceLabel: Record<Task["importance"], string> = {
     urgent_not_important: "Срочно, но неважно",
@@ -18,19 +19,14 @@ const importanceLabel: Record<Task["importance"], string> = {
     not_urgent_not_important: "Не срочно и не важно",
 };
 
-const importanceColor: Record<Task["importance"], "error" | "warning" | "info" | "default"> = {
-    urgent_important: "error",
-    urgent_not_important: "warning",
-    not_urgent_important: "info",
-    not_urgent_not_important: "default",
-};
-
 const TodoDetails: FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
 
     const task = useAppSelector((state) =>
         selectTaskId(state, id)) as Task | null;
+
+    const chipColor = task ? IMPORTANCE_COLORS[task.importance] : undefined;
 
     return (
         <Container maxWidth="md" sx={{ py: 4 }}>
@@ -53,7 +49,7 @@ const TodoDetails: FC = () => {
                                     <Chip
                                         label={importanceLabel[task.importance]}
                                         size="small"
-                                        color={importanceColor[task.importance] === "default" ? undefined : (importanceColor[task.importance] as any)}
+                                        color={chipColor}
                                     />
                                 </Stack>
                             </Box>
